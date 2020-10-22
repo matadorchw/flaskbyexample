@@ -11,23 +11,42 @@ RSS_FEEDS = {
     'untranslatable': 'https://untranslatable.home.blog/feed/'
 }
 
-DEFAULTS = {'publication': '4sbooks',
-            'city': 'Shenzhen,CN'}
+DEFAULTS = {
+    'publication': '4sbooks',
+    'city': 'Shenzhen,CN',
+    'currency_from': 'CNY',
+    'currency_to': 'USD'
+}
+
+WEATHER_URL = 'http://api.openweathermap.org/data/2.5/weather?' \
+              'q={}&units=metric&appid=cb932829eacb6a0e9ee4f38bfbf112ed'
+CURRENCY_URL = 'https://openexchangerates.org/api/latest.json?' \
+               'app_id=c1b6bc1b8b894f2ea21c8a73f1684263'
 
 
 @app.route('/')
 def home():
+    # get customized headlines, based on user input or default
     publication = request.args.get('publication')
     if not publication:
         publication = DEFAULTS['publication']
     articles = get_news(publication)
-
+    # get customized weather based on user input or default
     city = request.args.get('city')
     if not city:
         city = DEFAULTS['city']
     weather = get_weather(city)
-
-    return render_template('home.html', articles=articles, weather=weather)
+    # get customized currency based on user input or default
+    currency_from = request.args.get('currency_from')
+    if not currency_from:
+        currency_from = DEFAULTS['currency_from']
+    currency_to = request.args.get('currency_to')
+    if not currency_to:
+        currency_to = DEFAULTS['currency_to']
+    rate = get_rate(currency_from, currency_to)
+    return render_template('home.html', articles=articles, weather=weather,
+                           currency_from=currency_from, currency_to=currency_to,
+                           rate=rate)
 
 
 def get_news(query):
@@ -40,9 +59,8 @@ def get_news(query):
 
 
 def get_weather(query):
-    api_url = 'http://api.openweathermap.org/data/2.5/weather?q={}&units=metric&appid=cb932829eacb6a0e9ee4f38bfbf112ed'
     query = urllib.parse.quote(query)
-    url = api_url.format(query)
+    url = WEATHER_URL.format(query)
     data = urllib.request.urlopen(url).read()
     parsed = json.loads(data)
     weather = None
@@ -54,6 +72,14 @@ def get_weather(query):
             'country': parsed['sys']['country']
         }
     return weather
+
+
+def get_rate(frm, to):
+    all_currency = urllib.request.urlopen(CURRENCY_URL).read()
+    parsed = json.loads(all_currency).get('rates')
+    frm_rate = parsed.get(frm.upper())
+    to_rate = parsed.get(to.upper())
+    return to_rate / frm_rate
 
 
 if __name__ == '__main__':
