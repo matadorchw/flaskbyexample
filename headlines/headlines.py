@@ -4,16 +4,14 @@ from flask import Flask, render_template
 app = Flask(__name__)
 
 RSS_FEEDS = {
-    'zhihu': 'https://www.zhihu.com/rss',
-    'read': 'http://feed.read.org.cn/',
-    '163': 'https://news.163.com/special/00011K6L/rss_newsattitude.xml',
-    'iol': 'https://rss.iol.io/iol/news'
+    '4sbooks': 'http://www.4sbooks.com/feed',
+    'untranslatable': 'https://untranslatable.home.blog/feed/'
 }
 
 
 @app.route('/')
 @app.route('/<publication>')
-def get_news(publication='iol'):
+def get_news(publication='4sbooks'):
     feed = feedparser.parse(RSS_FEEDS[publication])
     return render_template('home.html', articles=feed['entries'])
 
