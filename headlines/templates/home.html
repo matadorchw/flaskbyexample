@@ -6,11 +6,14 @@
 
 <body>
     <h1>Headlines</h1>
-    <b>{{article.title}}</b><br />
-    <i>{{article.published}}</i><br />
+    {% for article in articles %}
+    <b><a href="{{article.link}}">{{article.title}}</a></b><br>
+    <i>{{article.published}}</i><br>
     {% autoescape false %}
-    <p>{{article.summary}}</p><br />
+    <p>{{article.summary}}</p><br>
     {% endautoescape %}
+    <hr>
+    {% endfor %}
 </body>
 
 </html>

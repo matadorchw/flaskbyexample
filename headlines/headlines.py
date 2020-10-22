@@ -6,16 +6,16 @@ app = Flask(__name__)
 RSS_FEEDS = {
     'zhihu': 'https://www.zhihu.com/rss',
     'read': 'http://feed.read.org.cn/',
-    '163': 'https://news.163.com/special/00011K6L/rss_newsattitude.xml'
+    '163': 'https://news.163.com/special/00011K6L/rss_newsattitude.xml',
+    'iol': 'https://rss.iol.io/iol/news'
 }
 
 
 @app.route('/')
 @app.route('/<publication>')
-def get_news(publication='163'):
+def get_news(publication='iol'):
     feed = feedparser.parse(RSS_FEEDS[publication])
-    first_article = feed['entries'][0]
-    return render_template('home.html', article=first_article)
+    return render_template('home.html', articles=feed['entries'])
 
 
 if __name__ == '__main__':
