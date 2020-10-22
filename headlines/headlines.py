@@ -11,18 +11,32 @@ RSS_FEEDS = {
     'untranslatable': 'https://untranslatable.home.blog/feed/'
 }
 
+DEFAULTS = {'publication': '4sbooks',
+            'city': 'Shenzhen,CN'}
+
 
 @app.route('/')
-def get_news():
-    query = request.args.get('publication')
+def home():
+    publication = request.args.get('publication')
+    if not publication:
+        publication = DEFAULTS['publication']
+    articles = get_news(publication)
+
+    city = request.args.get('city')
+    if not city:
+        city = DEFAULTS['city']
+    weather = get_weather(city)
+
+    return render_template('home.html', articles=articles, weather=weather)
+
+
+def get_news(query):
     if not query or query.lower() not in RSS_FEEDS:
-        publication = '4sbooks'
+        publication = DEFAULTS['publication']
     else:
         publication = query.lower()
     feed = feedparser.parse(RSS_FEEDS[publication])
-    weather = get_weather('Shenzhen,CN')
-    return render_template('home.html', articles=feed['entries'],
-                           weather=weather)
+    return feed['entries']
 
 
 def get_weather(query):
