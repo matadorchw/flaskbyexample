@@ -18,7 +18,8 @@ def home():
     except Exception as e:
         print(e)
         data = None
-    return render_template('home.html', data=data)
+    return render_template('home.html', data=data,
+                           map_api_key=dbconfig.map_api_key)
 
 
 @app.route('/add', methods=['POST'])
