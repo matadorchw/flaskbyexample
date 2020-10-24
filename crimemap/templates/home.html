@@ -26,16 +26,30 @@
                 placeMarker(e.latlng);
             });
 
-            function placeMarker(location) {
-                if (marker) {
-                    marker.setPosition(location);
-                } else {
-                    marker = new BMapGL.Marker(new BMapGL.Point(location.lng, location.lat));
-                    map.addOverlay(marker);
-                }
+            placeCrimes({{ crimes | safe}});
+        }
 
-                document.getElementById('latitude').value = location.lat;
-                document.getElementById('longitude').value = location.lng;
+        function placeMarker(location) {
+            if (marker) {
+                marker.setPosition(location);
+            } else {
+                marker = new BMapGL.Marker(new BMapGL.Point(location.lng, location.lat));
+                map.addOverlay(marker);
+            }
+
+            document.getElementById('latitude').value = location.lat;
+            document.getElementById('longitude').value = location.lng;
+        }
+
+        function placeCrimes(crimes) {
+            for (i = 0; i < crimes.length; i++) {
+                var point = new BMapGL.Point(crimes[i].longitude, crimes[i].latitude);
+                var crime = new BMapGL.Marker(point);
+                crime.setTitle(
+                    crimes[i].date + '\n' +
+                    crimes[i].category + '\n' +
+                    crimes[i].description);
+                map.addOverlay(crime);
             }
         }
     </script>
@@ -48,7 +62,7 @@
 
     <div id="newcrimeform">
         <h2>Submit new crime</h2>
-        <form action="/subcrime" method="POST">
+        <form action="/submitcrime" method="POST">
             <label for="category">Category</label>
             <select name="category" id="category">
                 <option value="mugging">Mugging</option>
