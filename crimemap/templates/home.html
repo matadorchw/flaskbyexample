@@ -1,18 +1,71 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
     <title>Crime Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static',filename='css/style.css') }}">
+    <script src="http://api.map.baidu.com/api?type=webgl&v=1.0&ak=Ov9NrTc9QIV4Wg1XaIqnB1Mq6I5ErG9r"></script>
+
+    <script type="text/javascript">
+        var map;
+        var marker;
+
+        function initialize() {
+            map = new BMapGL.Map('map-canvas');
+            map.centerAndZoom(new BMapGL.Point(113.247, 30.604), 12);
+            map.enableScrollWheelZoom(true);
+
+            var scaleCtrl = new BMapGL.ScaleControl();
+            map.addControl(scaleCtrl);
+            var zoomCtrl = new BMapGL.ZoomControl();
+            map.addControl(zoomCtrl);
+
+            map.addEventListener('click', function (e) {
+                placeMarker(e.latlng);
+            });
+
+            function placeMarker(location) {
+                if (marker) {
+                    marker.setPosition(location);
+                } else {
+                    marker = new BMapGL.Marker(new BMapGL.Point(location.lng, location.lat));
+                    map.addOverlay(marker);
+                }
+
+                document.getElementById('latitude').value = location.lat;
+                document.getElementById('longitude').value = location.lng;
+            }
+        }
+    </script>
 </head>
 
-<body>
-    <h1>Crime Map</h1>
-    <form action="/add" method="post">
-        <input type="text" name="userinput">
-        <input type="submit" value="Submit">
-    </form>
-    <a href="/clear">clear</a>
-    {% for userinput in data %}
-    <p>{{userinput}}</p>
-    {% endfor %}
+<body onload="initialize()">
+    <h1>CrimeMap</h1>
+    <p>A map of recent criminal activity in the Yanglaotai area.</p>
+    <div id="map-canvas" style="width: 70%; height:500px"></div>
+
+    <div id="newcrimeform">
+        <h2>Submit new crime</h2>
+        <form action="/subcrime" method="POST">
+            <label for="category">Category</label>
+            <select name="category" id="category">
+                <option value="mugging">Mugging</option>
+                <option value="breakin">Break-in</option>
+            </select>
+            <label for="date">Date</label>
+            <input type="date" name="date" id="date">
+            <label for="latitude">Latitude</label>
+            <input name="latitude" id="latitude" type="text">
+            <label for="longitude">Longitude</label>
+            <input name="longitude" id="longitude" type="text">
+            <label for="description">Description</label>
+            <textarea name="description" id="description"
+                placeholder="A brief but detailed description of the crime"></textarea>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
 </body>
 
 </html>
