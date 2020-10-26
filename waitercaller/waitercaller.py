@@ -5,6 +5,7 @@ from flask_login import LoginManager, login_required, login_user, logout_user, \
 import config
 
 from passwordhelper import PasswordHelper
+from bitlyhelper import BitlyHelper
 from user import User
 
 from mockdbhelper import MockDBHelper as DBHelper
@@ -15,6 +16,7 @@ login_manager = LoginManager(app)
 
 DB = DBHelper()
 PH = PasswordHelper()
+BH = BitlyHelper()
 
 
 @login_manager.user_loader
@@ -79,7 +81,7 @@ def account():
 def account_createtable():
     tablename = request.form.get('tablenumber')
     tableid = DB.add_table(tablename, current_user.get_id())
-    new_url = config.base_url + "newrequest/" + tableid
+    new_url = BH.shorten_url(config.base_url + "newrequest/" + tableid)
     DB.update_table(tableid, new_url)
     return redirect(url_for('account'))
 
