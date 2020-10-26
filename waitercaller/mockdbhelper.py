@@ -5,6 +5,9 @@ MOCK_USERS = [{
               'f0aa6a31f780e576578f791b5555b50df46303f0c3a7f2d21f91aa1429ac22e'
 }]
 
+MOCK_TABLES = [
+    {"_id": "1", "number": "1", "owner": "t@t.com", "url": "mockurl"}]
+
 
 class MockDBHelper:
 
@@ -16,3 +19,23 @@ class MockDBHelper:
 
     def add_user(self, email, salt, hashed):
         MOCK_USERS.append({"email": email, "salt": salt, "hashed": hashed})
+
+    def add_table(self, number, owner):
+        MOCK_TABLES.append(
+            {"_id": str(number), "number": number, "owner": owner})
+        return number
+
+    def update_table(self, _id, url):
+        for table in MOCK_TABLES:
+            if table.get("_id") == _id:
+                table["url"] = url
+                break
+
+    def get_tables(self, owner_id):
+        return MOCK_TABLES
+
+    def delete_table(self, table_id):
+        for i, table in enumerate(MOCK_TABLES):
+            if table.get("_id") == table_id:
+                del MOCK_TABLES[i]
+                break

@@ -1,9 +1,13 @@
 from flask import Flask, render_template, redirect, url_for, request
-from flask_login import LoginManager, login_required, login_user, logout_user
+from flask_login import LoginManager, login_required, login_user, logout_user, \
+    current_user
 
-from mockdbhelper import MockDBHelper as DBHelper
+import config
+
 from passwordhelper import PasswordHelper
 from user import User
+
+from mockdbhelper import MockDBHelper as DBHelper
 
 app = Flask(__name__)
 app.secret_key = 'tPXJY3X37Qybz4QykV+hOyUxVQeEXf1Ao2C8upz+fGQXKsM'
@@ -20,7 +24,7 @@ def load_user(user_id):
         return User(user_id)
 
 
-@app.route('/login', methods=['POST'])
+@app.route("/login", methods=["POST"])
 def login():
     email = request.form.get('email')
     password = request.form.get('password')
@@ -34,7 +38,7 @@ def login():
     return home()
 
 
-@app.route('/register', methods=['POST'])
+@app.route("/register", methods=["POST"])
 def register():
     email = request.form.get('email')
     pw1 = request.form.get('password')
@@ -49,25 +53,42 @@ def register():
     return redirect(url_for('home'))
 
 
-@app.route('/logout')
+@app.route("/logout")
 def logout():
     logout_user()
-    return redirect(url_for('home'))
+    return redirect(url_for("home"))
 
 
-@app.route('/')
+@app.route("/")
 def home():
     return render_template('home.html', loginform=None)
 
 
-@app.route('/dashboard')
+@app.route("/dashboard")
 def dashboard():
     return render_template('dashboard.html')
 
 
-@app.route('/account')
+@app.route("/account")
 def account():
-    return render_template('account.html')
+    tables = DB.get_tables(current_user.get_id())
+    return render_template("account.html", tables=tables)
+
+
+@app.route("/account/createtable", methods=["POST"])
+def account_createtable():
+    tablename = request.form.get('tablenumber')
+    tableid = DB.add_table(tablename, current_user.get_id())
+    new_url = config.base_url + "newrequest/" + tableid
+    DB.update_table(tableid, new_url)
+    return redirect(url_for('account'))
+
+
+@app.route("/account/deletetable")
+def account_deletetable():
+    tableid = request.args.get("tableid")
+    DB.delete_table(tableid)
+    return redirect(url_for('account'))
 
 
 if __name__ == '__main__':
