@@ -57,13 +57,17 @@ def logout():
 
 @app.route('/')
 def home():
-    return render_template('home.html')
+    return render_template('home.html', loginform=None)
+
+
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
 
 
 @app.route('/account')
-@login_required
 def account():
-    return 'You are logged in'
+    return render_template('account.html')
 
 
 if __name__ == '__main__':
