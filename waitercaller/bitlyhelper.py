@@ -9,6 +9,7 @@ SHORTEN = "/v3/shorten?access_token={}&longUrl={}"
 class BitlyHelper:
 
     def shorten_url(self, longurl):
+        return longurl
         try:
             url = ROOT_URL + SHORTEN.format(TOKEN, longurl)
             response = urllib.request.urlopen(url).read()

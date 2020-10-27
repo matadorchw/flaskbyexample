@@ -1,14 +1,27 @@
-from flask import Flask, render_template, redirect, url_for, request
-from flask_login import LoginManager, login_required, login_user, logout_user, \
-    current_user
+import datetime
 
-import config
+from flask import Flask
+from flask import redirect
+from flask import render_template
+from flask import request
+from flask import url_for
+
+from flask_login import LoginManager
+from flask_login import login_required
+from flask_login import login_user
+from flask_login import logout_user
+from flask_login import current_user
 
 from passwordhelper import PasswordHelper
 from bitlyhelper import BitlyHelper
 from user import User
 
-from mockdbhelper import MockDBHelper as DBHelper
+import config
+
+if config.test:
+    from mockdbhelper import MockDBHelper as DBHelper
+else:
+    from dbhelper import DBHelper
 
 app = Flask(__name__)
 app.secret_key = 'tPXJY3X37Qybz4QykV+hOyUxVQeEXf1Ao2C8upz+fGQXKsM'
@@ -68,7 +81,20 @@ def home():
 
 @app.route("/dashboard")
 def dashboard():
-    return render_template('dashboard.html')
+    now = datetime.datetime.now()
+    requests = DB.get_requests(current_user.get_id())
+    for req in requests:
+        deltaseconds = (now - req['time']).seconds
+        req['wait_minutes'] = "{}.{}".format((deltaseconds // 60),
+                                             str(deltaseconds % 60).zfill(2))
+    return render_template("dashboard.html", requests=requests)
+
+
+@app.route("/dashboard/resolve")
+def dashboard_resolve():
+    request_id = request.args.get("request_id")
+    DB.delete_request(request_id)
+    return redirect(url_for('dashboard'))
 
 
 @app.route("/account")
@@ -91,6 +117,12 @@ def account_deletetable():
     tableid = request.args.get("tableid")
     DB.delete_table(tableid)
     return redirect(url_for('account'))
+
+
+@app.route("/newrequest/<tid>")
+def new_request(tid):
+    DB.add_request(tid, datetime.datetime.now())
+    return "Your request has been logged and a waiter will be with you shortly"
 
 
 if __name__ == '__main__':
