@@ -16,6 +16,8 @@ from passwordhelper import PasswordHelper
 from bitlyhelper import BitlyHelper
 from user import User
 
+from forms import RegistrationForm
+
 import config
 
 if config.test:
@@ -55,17 +57,19 @@ def login():
 
 @app.route("/register", methods=["POST"])
 def register():
-    email = request.form.get('email')
-    pw1 = request.form.get('password')
-    pw2 = request.form.get('password2')
-    if not pw1 == pw2:
-        return redirect(url_for('home'))
-    if DB.get_user(email):
-        return redirect(url_for('home'))
-    salt = PH.get_salt()
-    hashed = PH.get_hash(pw1 + salt)
-    DB.add_user(email, salt, hashed)
-    return redirect(url_for('home'))
+    form = RegistrationForm(request.form)
+    if form.validate():
+        if DB.get_user(form.email.data):
+            form.email.errors.append("Email address already registered")
+            return render_template("home.html", loginform=None,
+                                   registrationform=form)
+        salt = PH.get_salt()
+        hashed = PH.get_hash(form.password2.data + salt)
+        DB.add_user(form.email.data, salt, hashed)
+        return render_template("home.html", loginform=None,
+                               registrationform=form,
+                               onloadmessage="Registration successful. Please Log in.")
+    return render_template("home.html", loginform=None, registrationform=form)
 
 
 @app.route("/logout")
@@ -76,10 +80,12 @@ def logout():
 
 @app.route("/")
 def home():
-    return render_template('home.html', loginform=None)
+    return render_template("home.html", loginform=None,
+                           registrationform=RegistrationForm())
 
 
 @app.route("/dashboard")
+@login_required
 def dashboard():
     now = datetime.datetime.now()
     requests = DB.get_requests(current_user.get_id())
@@ -91,6 +97,7 @@ def dashboard():
 
 
 @app.route("/dashboard/resolve")
+@login_required
 def dashboard_resolve():
     request_id = request.args.get("request_id")
     DB.delete_request(request_id)
@@ -98,12 +105,14 @@ def dashboard_resolve():
 
 
 @app.route("/account")
+@login_required
 def account():
     tables = DB.get_tables(current_user.get_id())
     return render_template("account.html", tables=tables)
 
 
 @app.route("/account/createtable", methods=["POST"])
+@login_required
 def account_createtable():
     tablename = request.form.get('tablenumber')
     tableid = DB.add_table(tablename, current_user.get_id())
@@ -113,6 +122,7 @@ def account_createtable():
 
 
 @app.route("/account/deletetable")
+@login_required
 def account_deletetable():
     tableid = request.args.get("tableid")
     DB.delete_table(tableid)
