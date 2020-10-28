@@ -98,7 +98,8 @@ def dashboard():
         deltaseconds = (now - req['time']).seconds
         req['wait_minutes'] = "{}.{}".format((deltaseconds // 60),
                                              str(deltaseconds % 60).zfill(2))
-    return render_template("dashboard.html", requests=requests)
+    return render_template("dashboard.html", requests=requests,
+                           current_user=current_user)
 
 
 @app.route("/dashboard/resolve")
@@ -114,7 +115,7 @@ def dashboard_resolve():
 def account():
     tables = DB.get_tables(current_user.get_id())
     return render_template("account.html", createtableform=CreateTableForm(),
-                           tables=tables)
+                           tables=tables, current_user=current_user)
 
 
 @app.route("/account/createtable", methods=["POST"])
