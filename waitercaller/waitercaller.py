@@ -12,20 +12,20 @@ from flask_login import login_user
 from flask_login import logout_user
 from flask_login import current_user
 
+import config
+if config.test:
+    from mockdbhelper import MockDBHelper as DBHelper
+else:
+    from dbhelper import DBHelper
+
 from passwordhelper import PasswordHelper
-from bitlyhelper import BitlyHelper
+from mockbitlyhelper import MockBitlyHelper as BitlyHelper
 from user import User
 
 from forms import RegistrationForm
 from forms import LoginForm
 from forms import CreateTableForm
 
-import config
-
-if config.test:
-    from mockdbhelper import MockDBHelper as DBHelper
-else:
-    from dbhelper import DBHelper
 
 app = Flask(__name__)
 app.secret_key = 'tPXJY3X37Qybz4QykV+hOyUxVQeEXf1Ao2C8upz+fGQXKsM'
@@ -123,7 +123,7 @@ def account_createtable():
     form = CreateTableForm(request.form)
     if form.validate():
         tableid = DB.add_table(form.tablenumber.data, current_user.get_id())
-        new_url = BH.shorten_url(config.base_url + "newrequest/" + tableid)
+        new_url = BH.shorten_url(config.base_url + "newrequest/" + str(tableid))
         DB.update_table(tableid, new_url)
         return redirect(url_for('account'))
     return render_template("account.html", createtableform=form,
